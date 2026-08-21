@@ -17,7 +17,7 @@ export function App({ ctx, mountCount }: { ctx: MountContext; mountCount: number
   return (
     <div>
       <img src={ctx.asset('logo.svg')} alt="" width={24} height={24} />
-      <h1>Goodbye, Hello World</h1>
+      <h1>Hello, Hello World</h1>
       <p>
         <span className="status-dot" /> window width: {width}px
       </p>

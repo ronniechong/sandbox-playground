@@ -19,6 +19,8 @@ interface SiteManifest {
   vendor: string;
   common: string;
   shell: { js: string; css: string | null };
+  /** The `main` commit this site tree was built from — the diff base for the next run's change detection, not just informational. */
+  deployedSha: string;
 }
 
 function readManifest(siteDir: string): SiteManifest | null {
@@ -82,6 +84,7 @@ export interface BuildSiteOptions {
   changedApps: string[];
   rebuiltShared: boolean;
   rebuiltShell: boolean;
+  mainSha: string;
 }
 
 /**
@@ -93,7 +96,7 @@ export interface BuildSiteOptions {
  * containing build output themselves.
  */
 export async function buildSite(options: BuildSiteOptions): Promise<void> {
-  const { siteDir, basePath, changedApps, rebuiltShared, rebuiltShell } = options;
+  const { siteDir, basePath, changedApps, rebuiltShared, rebuiltShell, mainSha } = options;
   mkdirSync(siteDir, { recursive: true });
 
   const prevManifest = readManifest(siteDir);
@@ -152,6 +155,7 @@ export async function buildSite(options: BuildSiteOptions): Promise<void> {
     vendor: vendorFile,
     common: commonFile,
     shell: { js: shellJs, css: shellCss },
+    deployedSha: mainSha,
   });
 
   for (const slug of changedApps) {
@@ -202,6 +206,7 @@ interface CliArgs {
   changedApps: string[];
   rebuiltShared: boolean;
   rebuiltShell: boolean;
+  mainSha: string;
 }
 
 function parseCliArgs(argv: string[]): CliArgs {
@@ -222,6 +227,7 @@ function parseCliArgs(argv: string[]): CliArgs {
       : [],
     rebuiltShared: flagBool('rebuilt-shared'),
     rebuiltShell: flagBool('rebuilt-shell'),
+    mainSha: flag('main-sha', ''),
   };
 }
 
