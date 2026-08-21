@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - packages/*/test-fixtures/*
 allowBuilds:
   esbuild: true
   simple-git-hooks: true

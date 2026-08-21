@@ -1,0 +1,7 @@
+{
+  "name": "@exp/reset",
+  "private": true,
+  "exports": {
+    ".": "./src/index.css"
+  }
+}

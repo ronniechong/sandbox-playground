@@ -1,0 +1,19 @@
+{
+  "name": "@exp/build-preset",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "postcss": "^8.4.49",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "^2.1.5"
+  }
+}

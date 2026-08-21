@@ -1,0 +1,13 @@
+{
+  "name": "@exp/throwaway-app-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@exp/build-preset": "workspace:*",
+    "@exp/reset": "workspace:*",
+    "vite": "catalog:"
+  }
+}
