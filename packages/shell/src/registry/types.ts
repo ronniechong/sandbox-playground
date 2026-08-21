@@ -7,6 +7,15 @@ export interface RegistryEntry {
   lastUpdated: string;
   vendorUrl: string;
   commonUrl: string;
+  /**
+   * The vendor/common bundle filenames (e.g. "vendor-8f21c4.js") this entry
+   * was built against, frozen at build time — distinct from `vendorUrl`,
+   * which always points at the *shared* bundle's current URL structure.
+   * Read by `pnpm status` as the recorded side of vendor staleness; see
+   * ADDENDUM-004 §1.
+   */
+  vendor: string;
+  common: string;
   entry: { js: string; css?: string };
   contractVersion: 1;
   /**

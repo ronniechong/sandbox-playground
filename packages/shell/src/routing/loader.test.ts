@@ -9,6 +9,8 @@ function entry(overrides: Partial<RegistryEntry> = {}): RegistryEntry {
     isEnabled: true,
     lastUpdated: '2026-08-21T00:00:00.000Z',
     vendorUrl: '/vendor/vendor-v1.js',
+    vendor: 'vendor-v1.js',
+    common: 'common-v1.js',
     commonUrl: '/common/common-c1.js',
     entry: { js: '/x/index.js' },
     contractVersion: 1,

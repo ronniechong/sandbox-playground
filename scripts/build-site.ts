@@ -33,6 +33,36 @@ function writeManifest(siteDir: string, manifest: SiteManifest): void {
   writeFileSync(join(siteDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 }
 
+interface BundleManifest {
+  current: string;
+  builtAt: string;
+  history: string[];
+}
+
+function readBundleManifest(siteDir: string, name: 'vendor' | 'common'): BundleManifest | null {
+  const path = join(siteDir, name, 'manifest.json');
+  if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, 'utf8')) as BundleManifest;
+}
+
+/**
+ * `current` per ADDENDUM-004 §1 — read by `pnpm status` as the "right" side
+ * of vendor staleness (recorded per-app value lives in the registry's own
+ * `vendor`/`common` fields, frozen at that app's last build). `history`
+ * never drops an entry, matching the append-only rule for the rest of the
+ * deploy tree.
+ */
+function writeBundleManifest(siteDir: string, name: 'vendor' | 'common', file: string): void {
+  const prev = readBundleManifest(siteDir, name);
+  const history = prev?.history ?? [];
+  if (!history.includes(file)) history.push(file);
+  mkdirSync(join(siteDir, name), { recursive: true });
+  writeFileSync(
+    join(siteDir, name, 'manifest.json'),
+    JSON.stringify({ current: file, builtAt: new Date().toISOString(), history }, null, 2) + '\n',
+  );
+}
+
 /** Copies every file in `srcDir` into `destDir`, never overwriting a name already there — dist filenames are content-hashed, so an existing name is already correct. */
 function copyDirAppendOnly(srcDir: string, destDir: string): void {
   mkdirSync(destDir, { recursive: true });
@@ -137,6 +167,8 @@ export async function buildSite(options: BuildSiteOptions): Promise<string[]> {
     if (!vendorFile || !commonFile) {
       throw new Error('vendor/common were marked rebuilt but no vendor-*.js/common-*.js found.');
     }
+    writeBundleManifest(siteDir, 'vendor', vendorFile);
+    writeBundleManifest(siteDir, 'common', commonFile);
     summary.push(
       prevManifest
         ? `shared: ${prevManifest.vendor} -> ${vendorFile}, ${prevManifest.common} -> ${commonFile}`

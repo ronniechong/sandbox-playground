@@ -1,0 +1,79 @@
+name: Bit-rot report
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # A canary, not a pipeline: builds every app from source into this
+      # runner's own disposable workspace and reports what broke. It never
+      # checks out site-state or gh-pages, never commits or pushes
+      # anything, and never uploads an artifact or triggers deploy.yml — a
+      # build failure here is the finding, not an error, so the step
+      # itself must never fail the job.
+      - name: Build every app
+        id: build
+        run: |
+          set +e
+          FAILED=""
+          for dir in apps/*/; do
+            slug="$(basename "$dir")"
+            [ -f "$dir/package.json" ] || continue
+            echo "::group::Building $slug"
+            if ! pnpm --filter "@exp/$slug" run build; then
+              FAILED="$FAILED $slug"
+            fi
+            echo "::endgroup::"
+          done
+          FAILED="$(echo "$FAILED" | xargs)"
+          {
+            echo "failed<<BITROT_EOF"
+            echo "$FAILED"
+            echo "BITROT_EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Failed apps: ${FAILED:-none}"
+          exit 0
+
+      - name: Find-or-update the bit-rot issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILED: ${{ steps.build.outputs.failed }}
+        run: |
+          set -euo pipefail
+          TITLE="Bit-rot report"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          DATE="$(date -u +%Y-%m-%d)"
+
+          if [ -z "$FAILED" ]; then
+            BODY=$'All apps built cleanly as of '"$DATE"$'.\n\n[Run]('"$RUN_URL"$')'
+          else
+            LIST="$(echo "$FAILED" | tr ' ' '\n' | sed 's/^/- `/; s/$/`/')"
+            BODY=$'The following apps failed to build from source as of '"$DATE"$':\n\n'"$LIST"$'\n\nSee [docs/REVIVING.md](../blob/main/docs/REVIVING.md) to bring one back.\n\n[Run]('"$RUN_URL"$')'
+          fi
+
+          NUMBER="$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")"
+
+          if [ -n "$NUMBER" ]; then
+            gh issue edit "$NUMBER" -R "${{ github.repository }}" --body "$BODY"
+          else
+            gh issue create -R "${{ github.repository }}" --title "$TITLE" --body "$BODY"
+          fi

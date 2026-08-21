@@ -1,3 +1,4 @@
+export { gitTreeSha } from './git-tree.ts';
 export { experiment } from './experiment.ts';
 export type { ExperimentOptions } from './experiment.ts';
 export { shell } from './shell.ts';

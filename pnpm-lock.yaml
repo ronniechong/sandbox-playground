@@ -35,6 +35,12 @@ importers:
       '@eslint/js':
         specifier: ^9.15.0
         version: 9.39.5
+      '@exp/build-preset':
+        specifier: workspace:*
+        version: link:packages/build-preset
+      '@exp/contract':
+        specifier: workspace:*
+        version: link:packages/contract
       '@exp/shell':
         specifier: workspace:*
         version: link:packages/shell

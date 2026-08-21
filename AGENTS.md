@@ -34,7 +34,18 @@
 - `just check` — format-check, lint, typecheck, test across the whole workspace
 - `just test` / `just lint` / `just typecheck` / `just format` — individual gates
 - `just build-shared` — build `vendor`/`common` and record their build hashes
+- `just status` / `pnpm status` — report staleness (source/vendor/toolchain/contract/version) for every deployed experiment, without rebuilding anything
+- `just rebuild-stale` / `pnpm rebuild:stale` — rebuild any experiment `pnpm status` marks source-stale
 - `pnpm --filter <package> <script>` — run a script scoped to one workspace package (e.g. `build`, `test`)
+
+## Creating and managing apps
+
+For anything beyond scaffolding — the `mount(el, ctx)` contract, cleanup
+rules, CSS scoping caveats, Shadow DOM opt-in, vendor rules — see
+[docs/AUTHORING.md](./docs/AUTHORING.md). To bring a frozen (already
+deployed) experiment back for changes, see
+[docs/REVIVING.md](./docs/REVIVING.md). For the additive-only rule shared
+packages must follow, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Settled technical decisions (do not re-litigate silently — flag first)
 

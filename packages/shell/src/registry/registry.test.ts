@@ -8,6 +8,8 @@ const validEntry: RegistryEntry = {
   isEnabled: true,
   lastUpdated: '2026-08-21T00:00:00.000Z',
   vendorUrl: '/vendor/vendor-abc123.js',
+  vendor: 'vendor-v1.js',
+  common: 'common-v1.js',
   commonUrl: '/common/common-def456.js',
   entry: {
     js: '/experiments/hello-world/abc/index.js',
