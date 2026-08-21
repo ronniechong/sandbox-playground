@@ -31,7 +31,7 @@ export interface SharedManifest {
  * Pulls the content hash out of an already-recorded entry.js URL, e.g.
  * "/apps/hello-world/dist/c52be47c/index.js" -> "c52be47c". Returns null
  * for anything that doesn't match hashOutputDir's own naming convention
- * (packages/build-preset/src/hash-output-dir.ts) — treated as "no prior
+ * (packages/build-preset/src/plugins/hash-output-dir.ts) — treated as "no prior
  * build to compare against", not an error.
  */
 export function extractHash(entryJsPath: string): string | null {

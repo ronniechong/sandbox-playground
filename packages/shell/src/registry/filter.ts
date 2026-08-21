@@ -27,6 +27,25 @@ export function filterEntries(registry: Registry, options: FilterOptions): Regis
   });
 }
 
+export type SortKey = 'title' | 'date';
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortOptions {
+  key: SortKey;
+  direction: SortDirection;
+}
+
+export function sortEntries(entries: RegistryEntry[], options: SortOptions): RegistryEntry[] {
+  const sorted = [...entries].sort((a, b) => {
+    const cmp =
+      options.key === 'title'
+        ? a.title.localeCompare(b.title)
+        : Date.parse(a.lastUpdated) - Date.parse(b.lastUpdated);
+    return options.direction === 'asc' ? cmp : -cmp;
+  });
+  return sorted;
+}
+
 export function collectTags(registry: Registry): string[] {
   const tags = new Set<string>();
   for (const entry of registry) {

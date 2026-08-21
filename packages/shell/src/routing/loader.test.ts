@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { needsFullPageNavigation, resetLoaderStateForTests } from './loader.ts';
-import type { RegistryEntry } from './types.ts';
+import type { RegistryEntry } from '../registry/types.ts';
 
 function entry(overrides: Partial<RegistryEntry> = {}): RegistryEntry {
   return {

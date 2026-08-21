@@ -2,9 +2,9 @@ import { join } from 'node:path';
 import type { AcceptedPlugin } from 'postcss';
 import { mergeConfig, type Plugin, type PluginOption, type UserConfig } from 'vite';
 import { CONTRACT_VERSION } from '@exp/contract';
-import { hashOutputDir } from './hash-output-dir.ts';
-import { noInlineCssAssets } from './no-inline-css-assets.ts';
-import { scopeCss } from './scope-css.ts';
+import { hashOutputDir } from './plugins/hash-output-dir.ts';
+import { noInlineCssAssets } from './plugins/no-inline-css-assets.ts';
+import { scopeCss } from './plugins/scope-css.ts';
 
 export interface ExperimentOptions {
   slug: string;

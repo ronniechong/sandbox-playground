@@ -1,17 +1,17 @@
 import { CONTRACT_VERSION, type Experiment, type MountContext } from '@exp/contract';
-import type { RegistryEntry } from './types.ts';
-import { buildAppPath, extractShellQueryKeys, parseLocation } from './router.ts';
-import { fetchRegistry, findEntry, RegistryFetchError } from './registry.ts';
+import type { RegistryEntry } from './registry/types.ts';
+import { buildAppPath, extractShellQueryKeys, parseLocation } from './routing/router.ts';
+import { fetchRegistry, findEntry, RegistryFetchError } from './registry/registry.ts';
 import {
   injectExperimentCss,
   injectExperimentScript,
   loadVendorAndCommon,
   needsFullPageNavigation,
-} from './loader.ts';
-import { renderError, renderNotFound } from './render.ts';
-import { ChromeUI } from './chrome-ui.ts';
-import { isChromeHidden, withChromeHidden } from './chrome-state.ts';
-import { loadStoredTheme, storeTheme, type Theme } from './theme-state.ts';
+} from './routing/loader.ts';
+import { renderError, renderNotFound } from './ui/render.ts';
+import { ChromeUI } from './ui/chrome-ui.ts';
+import { isChromeHidden, withChromeHidden } from './state/chrome-state.ts';
+import { loadStoredTheme, storeTheme, type Theme } from './state/theme-state.ts';
 
 export interface ShellOptions {
   root: HTMLElement;
@@ -137,7 +137,7 @@ export class Shell {
       await this.unmountCurrent();
       if (token !== this.navigationToken) return;
       this.chrome.setExperimentTitle(null);
-      renderNotFound(this.chrome.appContainer, '(no app)');
+      renderNotFound(this.chrome.appContainer, '(no app)', this.options.basePath);
       return;
     }
 
@@ -159,7 +159,7 @@ export class Shell {
     } catch (err) {
       if (token !== this.navigationToken) return;
       const message = err instanceof RegistryFetchError ? err.message : 'Unknown registry error';
-      renderError(this.chrome.appContainer, slug, message);
+      renderError(this.chrome.appContainer, slug, message, this.options.basePath);
       return;
     }
     if (token !== this.navigationToken) return;
@@ -168,7 +168,7 @@ export class Shell {
     const entry = findEntry(registry, slug);
     if (!entry || !entry.isEnabled) {
       this.chrome.setExperimentTitle(null);
-      renderNotFound(this.chrome.appContainer, slug);
+      renderNotFound(this.chrome.appContainer, slug, this.options.basePath);
       return;
     }
 
@@ -260,12 +260,17 @@ export class Shell {
 
       this.chrome.appContainer.textContent = '';
       this.chrome.appContainer.appendChild(container);
-      this.chrome.setExperimentTitle(entry.title);
+      this.chrome.setExperimentTitle(entry);
       this.mounted = mountedApp;
     } catch (err) {
       if (token !== this.navigationToken) return;
       this.chrome.setExperimentTitle(null);
-      renderError(this.chrome.appContainer, slug, err instanceof Error ? err.message : String(err));
+      renderError(
+        this.chrome.appContainer,
+        slug,
+        err instanceof Error ? err.message : String(err),
+        this.options.basePath,
+      );
     }
   }
 
@@ -277,7 +282,7 @@ export class Shell {
     } catch (err) {
       if (token !== this.navigationToken) return;
       const message = err instanceof RegistryFetchError ? err.message : 'Unknown registry error';
-      renderError(this.chrome.appContainer, '(home)', message);
+      renderError(this.chrome.appContainer, '(home)', message, this.options.basePath);
       return;
     }
     if (token !== this.navigationToken) return;

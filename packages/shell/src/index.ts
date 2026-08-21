@@ -1,9 +1,9 @@
-import './shell.css';
+import './ui/shell.css';
 import { Shell, type ShellOptions } from './lifecycle.ts';
 
 export { Shell, type ShellOptions } from './lifecycle.ts';
-export type { Registry, RegistryEntry } from './types.ts';
-export { parseLocation, buildAppPath } from './router.ts';
+export type { Registry, RegistryEntry } from './registry/types.ts';
+export { parseLocation, buildAppPath } from './routing/router.ts';
 
 declare global {
   interface Window {

@@ -1,4 +1,4 @@
-import type { RegistryEntry } from './types.ts';
+import type { RegistryEntry } from '../registry/types.ts';
 import { NodeTracker } from './node-tracker.ts';
 
 /** Module-scope: vendor/common are page-lifetime singletons, not per-mount. */
