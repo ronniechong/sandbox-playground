@@ -4,7 +4,7 @@
   "type": "module",
   "experiment": {
     "title": "Hello World",
-    "blurb": "",
+    "description": "",
     "tags": [],
     "status": "wip"
   },

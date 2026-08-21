@@ -4,7 +4,7 @@
   "type": "module",
   "experiment": {
     "title": "__TITLE__",
-    "blurb": "",
+    "description": "",
     "tags": [],
     "status": "wip"
   },
