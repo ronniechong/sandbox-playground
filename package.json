@@ -12,7 +12,8 @@
     "lint": "just lint",
     "format": "just format",
     "format:check": "just format-check",
-    "test": "just test"
+    "test": "just test",
+    "new": "tsx scripts/new-experiment.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",

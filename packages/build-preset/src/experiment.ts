@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import type { AcceptedPlugin } from 'postcss';
 import { mergeConfig, type Plugin, type PluginOption, type UserConfig } from 'vite';
 import { hashOutputDir } from './hash-output-dir.ts';
+import { noInlineCssAssets } from './no-inline-css-assets.ts';
 import { scopeCss } from './scope-css.ts';
 
 export interface ExperimentOptions {
@@ -106,7 +107,12 @@ export function experiment({
     },
     // hashOutputDir/scopeCss listed last so they always concatenate onto
     // (never get displaced by) whatever the app passed via `plugins`.
-    plugins: [...plugins, hashOutputDir(TEMP_DIR_NAME, 'dist'), scopeCss(slug)] as Plugin[],
+    plugins: [
+      ...plugins,
+      noInlineCssAssets(),
+      hashOutputDir(TEMP_DIR_NAME, 'dist'),
+      scopeCss(slug),
+    ] as Plugin[],
   };
 
   return mergeConfig(withAppConfig, presetOwned);

@@ -1,0 +1,15 @@
+@import '@exp/reset';
+
+/* Tailwind's own preflight is intentionally omitted — @exp/reset already
+   owns the box-model reset, and importing both would apply conflicting
+   resets to the same elements. */
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-image: url('./dot.svg');
+}

@@ -32,6 +32,9 @@ build-common:
 build-shared: build-vendor build-common
     pnpm exec tsx scripts/vendor-hash.ts
 
+new *args:
+    pnpm exec tsx scripts/new-experiment.ts {{args}}
+
 pre-commit:
     #!/usr/bin/env bash
     set -euo pipefail
