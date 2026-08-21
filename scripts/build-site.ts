@@ -87,17 +87,25 @@ export interface BuildSiteOptions {
   mainSha: string;
 }
 
+/** Pulls the content-hash path segment out of a built asset URL, e.g. ".../dist/6ff0b51c/index.js" -> "6ff0b51c". */
+function hashSegment(url: string): string {
+  const parts = url.split('/');
+  return parts[parts.length - 2] ?? url;
+}
+
 /**
  * Assembles the deployable site tree from this run's build output plus
  * whatever is already in `siteDir` (a checkout of the `site-state` branch).
  * Every write here is append-only for hashed paths — `manifest.json`,
  * `registry.json`, `index.html`, and `404.html` are the only mutable files,
  * since they only ever point at the latest hashed artifacts rather than
- * containing build output themselves.
+ * containing build output themselves. Returns a human-readable summary of
+ * what changed this run (used as the site-state commit body).
  */
-export async function buildSite(options: BuildSiteOptions): Promise<void> {
+export async function buildSite(options: BuildSiteOptions): Promise<string[]> {
   const { siteDir, basePath, changedApps, rebuiltShared, rebuiltShell, mainSha } = options;
   mkdirSync(siteDir, { recursive: true });
+  const summary: string[] = [];
 
   const prevManifest = readManifest(siteDir);
   if (!rebuiltShared && !prevManifest) {
@@ -129,6 +137,11 @@ export async function buildSite(options: BuildSiteOptions): Promise<void> {
     if (!vendorFile || !commonFile) {
       throw new Error('vendor/common were marked rebuilt but no vendor-*.js/common-*.js found.');
     }
+    summary.push(
+      prevManifest
+        ? `shared: ${prevManifest.vendor} -> ${vendorFile}, ${prevManifest.common} -> ${commonFile}`
+        : `shared: ${vendorFile}, ${commonFile} (initial)`,
+    );
   }
   if (!vendorFile || !commonFile) {
     throw new Error('No vendor/common build available (neither rebuilt nor in prior manifest).');
@@ -146,6 +159,11 @@ export async function buildSite(options: BuildSiteOptions): Promise<void> {
     shellJs = `/packages/shell/dist/${js}`;
     const css = latestHashedFile(join(ROOT, 'packages', 'shell', 'dist'), 'shell', '.css');
     shellCss = css ? `/packages/shell/dist/${css}` : null;
+    summary.push(
+      prevManifest?.shell.js
+        ? `shell: ${prevManifest.shell.js} -> ${shellJs}`
+        : `shell: ${shellJs} (initial)`,
+    );
   }
   if (!shellJs) {
     throw new Error('No shell build available (neither rebuilt nor in prior manifest).');
@@ -184,8 +202,17 @@ export async function buildSite(options: BuildSiteOptions): Promise<void> {
     slugs: changedApps,
   });
 
-  const merged = new Map(prevRegistry.map((e) => [e.slug, e]));
-  for (const entry of changedEntries) merged.set(entry.slug, entry);
+  const prevBySlug = new Map(prevRegistry.map((e) => [e.slug, e]));
+  const merged = new Map(prevBySlug);
+  for (const entry of changedEntries) {
+    const prevEntry = prevBySlug.get(entry.slug);
+    summary.push(
+      prevEntry
+        ? `app ${entry.slug}: ${hashSegment(prevEntry.entry.js)} -> ${hashSegment(entry.entry.js)} (v${entry.version})`
+        : `app ${entry.slug}: ${hashSegment(entry.entry.js)} (new, v${entry.version})`,
+    );
+    merged.set(entry.slug, entry);
+  }
   const registry = [...merged.values()];
   writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n');
 
@@ -198,6 +225,8 @@ export async function buildSite(options: BuildSiteOptions): Promise<void> {
   console.log(
     `Assembled ${siteDir}: ${registry.length} registry entr${registry.length === 1 ? 'y' : 'ies'}, ${changedApps.length} app(s) touched this run.`,
   );
+  for (const line of summary) console.log(`  ${line}`);
+  return summary;
 }
 
 interface CliArgs {
@@ -207,6 +236,7 @@ interface CliArgs {
   rebuiltShared: boolean;
   rebuiltShell: boolean;
   mainSha: string;
+  summaryFile: string;
 }
 
 function parseCliArgs(argv: string[]): CliArgs {
@@ -228,14 +258,20 @@ function parseCliArgs(argv: string[]): CliArgs {
     rebuiltShared: flagBool('rebuilt-shared'),
     rebuiltShell: flagBool('rebuilt-shell'),
     mainSha: flag('main-sha', ''),
+    summaryFile: flag('summary-file', ''),
   };
 }
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMain) {
-  const args = parseCliArgs(process.argv.slice(2));
-  buildSite(args).catch((err: unknown) => {
-    console.error(err);
-    process.exitCode = 1;
-  });
+  const { summaryFile, ...args } = parseCliArgs(process.argv.slice(2));
+  buildSite(args)
+    .then((summary) => {
+      if (summaryFile)
+        writeFileSync(summaryFile, summary.join('\n') + (summary.length ? '\n' : ''));
+    })
+    .catch((err: unknown) => {
+      console.error(err);
+      process.exitCode = 1;
+    });
 }
