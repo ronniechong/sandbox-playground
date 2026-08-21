@@ -17,11 +17,24 @@
 
 ## Repository layout
 
-_(populated as the workspace is built out)_
+- `apps/<slug>` — individual experiments, one package each, scaffolded via `pnpm new <slug>`
+- `packages/contract` — the `mount(el, ctx)` / `unmount()` boundary shared by every experiment and the shell
+- `packages/build-preset` — the Vite config preset (`experiment()`, `shell()`) that every app/shell package builds through: CSS scoping, asset handling, output hashing
+- `packages/shell` — the loader/router that fetches `registry.json` and mounts/unmounts experiments at runtime; vanilla TypeScript, no framework
+- `packages/vendor`, `packages/common` — shared bundles (React, etc.) built once and externalized from every experiment
+- `packages/reset` — the CSS reset compiled into each frozen experiment bundle
+- `packages/ui` — small UI components copied (not imported) into new experiments by the scaffolder
+- `templates/react-tailwind` — the default template `pnpm new` copies into `apps/<slug>`
+- `scripts/` — workspace tooling (`new-experiment.ts` backs `pnpm new`, `vendor-hash.ts` records vendor/common build hashes)
+- `public/404.html` — GitHub Pages' static fallback; bounces an unknown direct-loaded path back into the shell
 
 ## Commands
 
-_(populated once the workspace tooling exists)_
+- `pnpm new <slug>` — scaffold a new experiment (`--with <name,name>`, `--with-msw`, `--no-tailwind`)
+- `just check` — format-check, lint, typecheck, test across the whole workspace
+- `just test` / `just lint` / `just typecheck` / `just format` — individual gates
+- `just build-shared` — build `vendor`/`common` and record their build hashes
+- `pnpm --filter <package> <script>` — run a script scoped to one workspace package (e.g. `build`, `test`)
 
 ## Settled technical decisions (do not re-litigate silently — flag first)
 
