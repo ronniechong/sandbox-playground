@@ -9,6 +9,13 @@ export interface RegistryEntry {
   commonUrl: string;
   entry: { js: string; css?: string };
   contractVersion: 1;
+  tags: string[];
+  /**
+   * Display-filter concept for the home grid, distinct from `isEnabled`
+   * (which stays the loader-level 404 gate). Mirrors the `experiment.status`
+   * convention already used in each app's own package.json.
+   */
+  status: 'live' | 'wip' | 'archived';
 }
 
 export type Registry = RegistryEntry[];

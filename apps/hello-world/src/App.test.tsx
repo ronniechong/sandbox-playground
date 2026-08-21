@@ -16,6 +16,7 @@ function fakeCtx(overrides: Partial<MountContext> = {}): MountContext {
     route: '',
     navigate: () => {},
     onRouteChange: () => () => {},
+    onThemeChange: () => () => {},
     theme: 'light',
     ...overrides,
   };

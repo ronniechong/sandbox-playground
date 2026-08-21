@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Temporary local harness for M05's own manual leak-check/navigation
+  Temporary local harness for M05/M06's own manual leak-check/navigation
   testing only. Superseded once M07's registry builder + dev server
   exist. Not part of the deployed site.
 -->
@@ -11,6 +11,7 @@
   </head>
   <body>
     <div id="controls">
+      <button id="go-home">home grid</button>
       <button data-nav="hello-world">hello-world</button>
       <button data-nav="fake-app">fake-app</button>
       <button data-nav="disabled-app">disabled-app (expect 404)</button>
@@ -36,6 +37,11 @@
       }
 
       const { parseLocation } = await import('../src/router.ts');
+
+      document.getElementById('go-home').addEventListener('click', () => {
+        window.history.pushState(null, '', basePath || '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      });
 
       document.querySelectorAll('[data-nav]').forEach((btn) => {
         btn.addEventListener('click', () => {

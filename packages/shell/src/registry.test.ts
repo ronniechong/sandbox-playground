@@ -14,6 +14,8 @@ const validEntry: RegistryEntry = {
     css: '/experiments/hello-world/abc/index.css',
   },
   contractVersion: 1,
+  tags: ['demo'],
+  status: 'live',
 };
 
 afterEach(() => {

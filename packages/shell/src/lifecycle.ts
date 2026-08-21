@@ -1,6 +1,6 @@
 import { CONTRACT_VERSION, type Experiment, type MountContext } from '@exp/contract';
 import type { RegistryEntry } from './types.ts';
-import { buildAppPath, parseLocation } from './router.ts';
+import { buildAppPath, extractShellQueryKeys, parseLocation } from './router.ts';
 import { fetchRegistry, findEntry, RegistryFetchError } from './registry.ts';
 import {
   injectExperimentCss,
@@ -9,13 +9,16 @@ import {
   needsFullPageNavigation,
 } from './loader.ts';
 import { renderError, renderNotFound } from './render.ts';
+import { ChromeUI } from './chrome-ui.ts';
+import { isChromeHidden, withChromeHidden } from './chrome-state.ts';
+import { loadStoredTheme, storeTheme, type Theme } from './theme-state.ts';
 
 export interface ShellOptions {
   root: HTMLElement;
   basePath: string;
   registryUrl: string;
-  /** Theme is a fixed/stubbed value until theming lands in a later milestone. */
-  theme: 'light' | 'dark';
+  /** Used only as a fallback before any stored preference exists. */
+  theme: Theme;
 }
 
 interface MountedApp {
@@ -26,6 +29,7 @@ interface MountedApp {
   experiment: Experiment;
   cssLink: HTMLLinkElement | null;
   routeListeners: Set<(route: string) => void>;
+  themeListeners: Set<(theme: Theme) => void>;
 }
 
 /**
@@ -46,32 +50,83 @@ export function assertSupportedContractVersion(
   }
 }
 
+function isHomePath(pathname: string, basePath: string): boolean {
+  const normalizedBase = basePath.replace(/\/$/, '');
+  return pathname === normalizedBase || pathname === `${normalizedBase}/`;
+}
+
 export class Shell {
   private options: ShellOptions;
   private mounted: MountedApp | null = null;
   private navigationToken = 0;
+  private chrome: ChromeUI;
+  private theme: Theme;
 
   constructor(options: ShellOptions) {
     this.options = options;
+    this.theme = loadStoredTheme(window.localStorage, options.theme);
+    this.chrome = new ChromeUI(options.root, options.basePath, {
+      onHomeClick: () => this.navigateHome(),
+      onToggleChrome: () => this.toggleChrome(),
+      onToggleTheme: () => this.toggleTheme(),
+      onSelect: (slug: string) => this.navigate(slug, ''),
+    });
+    this.chrome.setTheme(this.theme);
   }
 
   start(): void {
     window.addEventListener('popstate', () => this.handleLocationChange());
+    this.chrome.setChromeHidden(isChromeHidden(window.location.search));
+    this.handleLocationChange();
+  }
+
+  navigateHome(): void {
+    window.history.pushState(null, '', this.options.basePath || '/');
     this.handleLocationChange();
   }
 
   navigate(slug: string, subpath: string, opts?: { replace?: boolean }): void {
     const path = buildAppPath(this.options.basePath, slug, subpath);
+    const shellQuery = extractShellQueryKeys(window.location.search);
+    const target = path + shellQuery;
     if (opts?.replace) {
-      window.history.replaceState(null, '', path);
+      window.history.replaceState(null, '', target);
     } else {
-      window.history.pushState(null, '', path);
+      window.history.pushState(null, '', target);
     }
     this.handleLocationChange();
   }
 
+  private toggleChrome(): void {
+    const hidden = !isChromeHidden(window.location.search);
+    const newSearch = withChromeHidden(window.location.search, hidden);
+    window.history.replaceState(
+      null,
+      '',
+      window.location.pathname + newSearch + window.location.hash,
+    );
+    this.chrome.setChromeHidden(hidden);
+  }
+
+  private toggleTheme(): void {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    storeTheme(window.localStorage, this.theme);
+    this.chrome.setTheme(this.theme);
+    if (this.mounted) {
+      for (const cb of this.mounted.themeListeners) cb(this.theme);
+    }
+  }
+
   private async handleLocationChange(): Promise<void> {
     const token = ++this.navigationToken;
+
+    if (isHomePath(window.location.pathname, this.options.basePath)) {
+      await this.unmountCurrent();
+      if (token !== this.navigationToken) return;
+      await this.renderHome(token);
+      return;
+    }
+
     const parsed = parseLocation(
       window.location.pathname,
       window.location.search,
@@ -81,7 +136,8 @@ export class Shell {
     if (!parsed) {
       await this.unmountCurrent();
       if (token !== this.navigationToken) return;
-      renderNotFound(this.options.root, '(no app)');
+      this.chrome.setExperimentTitle(null);
+      renderNotFound(this.chrome.appContainer, '(no app)');
       return;
     }
 
@@ -95,6 +151,7 @@ export class Shell {
 
     await this.unmountCurrent();
     if (token !== this.navigationToken) return;
+    this.chrome.showLoading();
 
     let registry;
     try {
@@ -102,14 +159,16 @@ export class Shell {
     } catch (err) {
       if (token !== this.navigationToken) return;
       const message = err instanceof RegistryFetchError ? err.message : 'Unknown registry error';
-      renderError(this.options.root, slug, message);
+      renderError(this.chrome.appContainer, slug, message);
       return;
     }
     if (token !== this.navigationToken) return;
+    this.chrome.setRegistry(registry);
 
     const entry = findEntry(registry, slug);
     if (!entry || !entry.isEnabled) {
-      renderNotFound(this.options.root, slug);
+      this.chrome.setExperimentTitle(null);
+      renderNotFound(this.chrome.appContainer, slug);
       return;
     }
 
@@ -150,6 +209,7 @@ export class Shell {
       container.setAttribute('data-exp', slug);
 
       const routeListeners = new Set<(route: string) => void>();
+      const themeListeners = new Set<(theme: Theme) => void>();
       const mountedApp: MountedApp = {
         slug,
         route,
@@ -158,6 +218,7 @@ export class Shell {
         experiment,
         cssLink,
         routeListeners,
+        themeListeners,
       };
 
       const ctx: MountContext = {
@@ -176,7 +237,13 @@ export class Shell {
           controller.signal.addEventListener('abort', unsubscribe);
           return unsubscribe;
         },
-        theme: this.options.theme,
+        onThemeChange: (cb: (theme: Theme) => void) => {
+          themeListeners.add(cb);
+          const unsubscribe = () => themeListeners.delete(cb);
+          controller.signal.addEventListener('abort', unsubscribe);
+          return unsubscribe;
+        },
+        theme: this.theme,
       };
 
       await experiment.mount(container, ctx);
@@ -191,13 +258,30 @@ export class Shell {
         return;
       }
 
-      this.options.root.textContent = '';
-      this.options.root.appendChild(container);
+      this.chrome.appContainer.textContent = '';
+      this.chrome.appContainer.appendChild(container);
+      this.chrome.setExperimentTitle(entry.title);
       this.mounted = mountedApp;
     } catch (err) {
       if (token !== this.navigationToken) return;
-      renderError(this.options.root, slug, err instanceof Error ? err.message : String(err));
+      this.chrome.setExperimentTitle(null);
+      renderError(this.chrome.appContainer, slug, err instanceof Error ? err.message : String(err));
     }
+  }
+
+  private async renderHome(token: number): Promise<void> {
+    this.chrome.showLoading();
+    let registry;
+    try {
+      registry = await fetchRegistry(this.options.registryUrl);
+    } catch (err) {
+      if (token !== this.navigationToken) return;
+      const message = err instanceof RegistryFetchError ? err.message : 'Unknown registry error';
+      renderError(this.chrome.appContainer, '(home)', message);
+      return;
+    }
+    if (token !== this.navigationToken) return;
+    this.chrome.renderHome(registry);
   }
 
   private async unmountCurrent(): Promise<void> {

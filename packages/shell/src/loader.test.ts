@@ -12,6 +12,8 @@ function entry(overrides: Partial<RegistryEntry> = {}): RegistryEntry {
     commonUrl: '/common/common-c1.js',
     entry: { js: '/x/index.js' },
     contractVersion: 1,
+    tags: [],
+    status: 'live',
     ...overrides,
   };
 }

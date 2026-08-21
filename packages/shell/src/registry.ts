@@ -15,7 +15,10 @@ function isRegistryEntry(value: unknown): value is RegistryEntry {
     typeof entry.entry === 'object' &&
     entry.entry !== null &&
     typeof (entry.entry as Record<string, unknown>).js === 'string' &&
-    entry.contractVersion === 1
+    entry.contractVersion === 1 &&
+    Array.isArray(entry.tags) &&
+    entry.tags.every((t) => typeof t === 'string') &&
+    (entry.status === 'live' || entry.status === 'wip' || entry.status === 'archived')
   );
 }
 

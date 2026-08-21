@@ -29,6 +29,14 @@ export interface MountContext {
   onRouteChange(cb: (route: string) => void): () => void;
 
   theme: 'light' | 'dark';
+
+  /**
+   * Fires when the shell's theme is toggled while this app stays mounted.
+   * `ctx.theme` itself is only read at mount time, so an app that cares
+   * about live changes must subscribe here. Returns an unsubscribe fn;
+   * also auto-removed on `signal` abort.
+   */
+  onThemeChange(cb: (theme: 'light' | 'dark') => void): () => void;
 }
 
 export interface Experiment {

@@ -1,3 +1,4 @@
+import './shell.css';
 import { Shell, type ShellOptions } from './lifecycle.ts';
 
 export { Shell, type ShellOptions } from './lifecycle.ts';
