@@ -164,18 +164,24 @@ jobs:
             ${{ steps.changes.outputs.shared_changed == 'true' && '--rebuilt-shared' || '' }} \
             ${{ steps.changes.outputs.shell_changed == 'true' && '--rebuilt-shell' || '' }}
 
-      # A commit message you can actually read back later: which app/shared/
-      # shell changed and old->new hash (from the summary file build-site.ts
-      # wrote), plus the main commit that drove it — so `git log site-state`
-      # doubles as the changelog for picking a rollback target, instead of
-      # every commit saying the same generic "sync deploy tree".
+      # A commit message you can actually read back later — critically, in
+      # the SUBJECT line, since `git log --oneline` (the natural way to skim
+      # site-state for a rollback target) only ever shows the subject, never
+      # the body. Subject carries the main commit's short sha + message;
+      # the full old->new hash summary (from build-site.ts) goes in the body
+      # for anyone who opens the full commit.
       - name: Commit site-state
         id: commit-site-state
         run: |
           set -euo pipefail
           MAIN_SUBJECT="$(git log -1 --format=%s "${{ github.sha }}")"
+          MAIN_SHORT_SHA="$(git rev-parse --short "${{ github.sha }}")"
+          SUBJECT="site-state: $MAIN_SHORT_SHA $MAIN_SUBJECT"
+          if [ "${#SUBJECT}" -gt 100 ]; then
+            SUBJECT="${SUBJECT:0:97}..."
+          fi
           {
-            echo "chore(site-state): sync deploy tree"
+            echo "$SUBJECT"
             echo ""
             echo "main: ${{ github.sha }} $MAIN_SUBJECT"
             if [ -s "$RUNNER_TEMP/site-summary.txt" ]; then
