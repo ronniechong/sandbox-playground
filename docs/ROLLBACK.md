@@ -6,6 +6,17 @@ served by Pages and never a target for human pushes. Rolling back means
 picking an older `site-state` commit and re-publishing exactly that tree,
 with no rebuild.
 
+`site-state` is an orphan branch with no shared history with `main` — GitHub's
+"N ahead / M behind" comparison against `main` is not meaningful here and can
+be ignored. The real record of what a `site-state` commit corresponds to is
+its own commit message (subject: the driving `main` commit; body: what
+changed) and `manifest.json`'s `deployedSha` field, not its position in a
+shared commit graph.
+
+Branch protection on `site-state` only blocks deletion — it does not require
+a pull request and does not block force-pushes, since both CI's normal
+commit-and-push and the rollback procedure below depend on pushing directly.
+
 ## Procedure
 
 1. Find the commit to roll back to.
