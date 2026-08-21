@@ -49,6 +49,8 @@ function prevEntry(overrides: Partial<RegistryEntry> = {}): RegistryEntry {
     lastUpdated: '2026-01-01T00:00:00.000Z',
     vendorUrl: '/packages/vendor/dist/vendor-OLD.js',
     commonUrl: '/packages/common/dist/common-OLD.js',
+    vendor: 'vendor-OLD.js',
+    common: 'common-OLD.js',
     entry: { js: '/apps/app-1/dist/aaaa1111/index.js', css: '/apps/app-1/dist/aaaa1111/index.css' },
     contractVersion: 1,
     version: '0.1.0',

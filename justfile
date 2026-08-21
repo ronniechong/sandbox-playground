@@ -49,6 +49,12 @@ build-site *args:
 staleness *args:
     pnpm exec tsx scripts/staleness.ts {{args}}
 
+status *args:
+    pnpm exec tsx scripts/status.ts {{args}}
+
+rebuild-stale *args:
+    pnpm exec tsx scripts/rebuild-stale.ts {{args}}
+
 pre-commit:
     #!/usr/bin/env bash
     set -euo pipefail

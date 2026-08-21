@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Registry, RegistryEntry } from '@exp/shell';
 
@@ -137,6 +137,8 @@ export function mergeEntry(
     lastUpdated: metadata.lastUpdated,
     vendorUrl: shared.vendorUrl,
     commonUrl: shared.commonUrl,
+    vendor: basename(shared.vendorUrl),
+    common: basename(shared.commonUrl),
     entry: { js: artifact.js, css: artifact.css },
     contractVersion: artifact.contractVersion,
     version: resolveVersion(metadata, rebuilt, prevEntry),

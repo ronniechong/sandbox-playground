@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import type { AcceptedPlugin } from 'postcss';
 import { mergeConfig, type Plugin, type PluginOption, type UserConfig } from 'vite';
 import { CONTRACT_VERSION } from '@exp/contract';
+import { gitTreeSha } from './git-tree.ts';
 import { hashOutputDir } from './plugins/hash-output-dir.ts';
 import { noInlineCssAssets } from './plugins/no-inline-css-assets.ts';
 import { scopeCss } from './plugins/scope-css.ts';
@@ -111,7 +112,19 @@ export function experiment({
     plugins: [
       ...plugins,
       noInlineCssAssets(),
-      hashOutputDir(TEMP_DIR_NAME, 'dist', () => ({ contractVersion: CONTRACT_VERSION })),
+      hashOutputDir(TEMP_DIR_NAME, 'dist', () => ({
+        contractVersion: CONTRACT_VERSION,
+        // Recorded per ADDENDUM-004 §1 — read back by `pnpm status` as the
+        // "left" side of the source/toolchain staleness comparison. `undefined`
+        // entries (no git repo, shallow clone) are dropped by JSON.stringify,
+        // which status.ts treats as "unknown", not "up to date".
+        sourceTree: gitTreeSha(`apps/${slug}`),
+        toolchainTrees: {
+          contract: gitTreeSha('packages/contract'),
+          reset: gitTreeSha('packages/reset'),
+          'build-preset': gitTreeSha('packages/build-preset'),
+        },
+      })),
       scopeCss(slug),
     ] as Plugin[],
   };

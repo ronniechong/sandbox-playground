@@ -14,12 +14,16 @@
     "format:check": "just format-check",
     "test": "just test",
     "new": "tsx scripts/new-experiment.ts",
-    "dev": "tsx scripts/dev.ts"
+    "dev": "tsx scripts/dev.ts",
+    "status": "just status",
+    "rebuild:stale": "just rebuild-stale"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
     "@eslint/js": "^9.15.0",
+    "@exp/build-preset": "workspace:*",
+    "@exp/contract": "workspace:*",
     "@exp/shell": "workspace:*",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.3.4",
