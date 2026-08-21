@@ -159,16 +159,34 @@ jobs:
             --base-path "$BASE_PATH" \
             --changed-apps "${{ steps.changes.outputs.apps }}" \
             --main-sha "${{ github.sha }}" \
+            --summary-file "$RUNNER_TEMP/site-summary.txt" \
             ${{ steps.changes.outputs.shared_changed == 'true' && '--rebuilt-shared' || '' }} \
             ${{ steps.changes.outputs.shell_changed == 'true' && '--rebuilt-shell' || '' }}
 
+      # A commit message you can actually read back later: which app/shared/
+      # shell changed and old->new hash (from the summary file build-site.ts
+      # wrote), plus the main commit that drove it — so `git log site-state`
+      # doubles as the changelog for picking a rollback target, instead of
+      # every commit saying the same generic "sync deploy tree".
       - name: Commit site-state
         run: |
+          set -euo pipefail
+          MAIN_SUBJECT="$(git log -1 --format=%s "${{ github.sha }}")"
+          {
+            echo "chore(site-state): sync deploy tree"
+            echo ""
+            echo "main: ${{ github.sha }} $MAIN_SUBJECT"
+            if [ -s "$RUNNER_TEMP/site-summary.txt" ]; then
+              echo ""
+              cat "$RUNNER_TEMP/site-summary.txt"
+            fi
+          } > "$RUNNER_TEMP/site-commit-message.txt"
+
           cd site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "chore(site-state): sync deploy tree" || exit 0
+          git commit -F "$RUNNER_TEMP/site-commit-message.txt" || exit 0
           git push origin HEAD:site-state
 
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
