@@ -40,6 +40,15 @@ new *args:
 dev *args:
     pnpm exec tsx scripts/dev.ts {{args}}
 
+changed *args:
+    scripts/changed.sh {{args}}
+
+build-site *args:
+    pnpm exec tsx scripts/build-site.ts {{args}}
+
+staleness *args:
+    pnpm exec tsx scripts/staleness.ts {{args}}
+
 pre-commit:
     #!/usr/bin/env bash
     set -euo pipefail
