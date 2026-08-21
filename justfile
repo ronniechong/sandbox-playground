@@ -23,6 +23,15 @@ test:
 
 check: format-check lint typecheck test
 
+build-vendor:
+    pnpm --filter @exp/vendor run build
+
+build-common:
+    pnpm --filter @exp/common run build
+
+build-shared: build-vendor build-common
+    pnpm exec tsx scripts/vendor-hash.ts
+
 pre-commit:
     #!/usr/bin/env bash
     set -euo pipefail
