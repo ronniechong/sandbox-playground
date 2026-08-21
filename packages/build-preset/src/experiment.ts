@@ -1,11 +1,25 @@
 import { join } from 'node:path';
-import type { UserConfig } from 'vite';
+import type { AcceptedPlugin } from 'postcss';
+import { mergeConfig, type Plugin, type PluginOption, type UserConfig } from 'vite';
 import { hashOutputDir } from './hash-output-dir.ts';
-import { scopingPlugin } from './scoping-plugin.ts';
+import { scopeCss } from './scope-css.ts';
 
 export interface ExperimentOptions {
   slug: string;
   entry: string;
+
+  /** Additional Vite plugins, e.g. `@tailwindcss/vite`. Appended after the
+   * preset's own plugins — cannot displace `scopeCss` or `hashOutputDir`. */
+  plugins?: PluginOption[];
+
+  /** Authoring-time PostCSS plugins (nesting, etc). Scoping is not
+   * configured through this list and cannot be removed via it — it runs
+   * as a separate bundle-output Vite plugin instead (see `scopeCss`). */
+  postcss?: AcceptedPlugin[];
+
+  /** Escape hatch for genuinely unusual apps. Merged in via Vite's
+   * `mergeConfig`, with preset-owned keys reapplied on top afterward. */
+  vite?: UserConfig;
 }
 
 const TEMP_DIR_NAME = '.build';
@@ -13,27 +27,47 @@ const TEMP_DIR_NAME = '.build';
 /**
  * Vite config for a single experiment: an IIFE that registers itself on
  * `window.__exp[slug]`, externalized against the vendor bundle's React
- * globals, built into a content-hashed output directory.
+ * globals, built into a content-hashed output directory, with CSS scoping
+ * enforced as an invariant rather than a removable config entry.
  *
  * Uses `build.lib` rather than raw `rollupOptions.input`: Vite only emits
  * CSS as a real separate file (`lib.cssFileName`) for library builds —
  * for a plain non-lib build targeting `iife`/`umd`, Vite always injects
- * CSS via a JS-created `<style>` tag instead (it only extracts to a real
- * file for `es`/`cjs` output), which would violate "CSS emitted as a
- * separate file, never inlined." Fixed filenames (not `[hash]` tokens)
- * are fine here, unlike vendor/common in M02 — this milestone hashes the
- * whole output *directory* after the build, not individual filenames.
+ * CSS via a JS-created `<style>` tag instead. Fixed filenames (not
+ * `[hash]` tokens) are fine here — the whole output *directory* gets
+ * hashed after the build, not individual filenames.
+ *
+ * Merge order: app's `vite` override merges first, then this function's
+ * own config merges on top and always wins on the keys it owns
+ * (`build.lib`, `rollupOptions.external`/`output`, `assetsInlineLimit`,
+ * `base`) — an app cannot use `vite:` to weaken those. Plugin arrays
+ * concatenate rather than replace, so `scopeCss` and `hashOutputDir` are
+ * always present regardless of what an app adds.
  */
-export function experiment({ slug, entry }: ExperimentOptions): UserConfig {
+export function experiment({
+  slug,
+  entry,
+  plugins = [],
+  postcss = [],
+  vite: viteOverride = {},
+}: ExperimentOptions): UserConfig {
   const safeName = `__exp_${slug.replace(/[^a-zA-Z0-9_$]/g, '_')}`;
 
-  return {
-    base: './',
+  const withAppConfig = mergeConfig(viteOverride, {
     css: {
       postcss: {
-        plugins: [scopingPlugin(slug)],
+        // App-supplied authoring-time plugins only. Providing this object
+        // at all (even empty) also disables Vite's postcss.config.js
+        // auto-discovery, which matters since scoping must not be
+        // overridable by a stray config file an app didn't mean as an
+        // override.
+        plugins: postcss,
       },
     },
+  } satisfies UserConfig);
+
+  const presetOwned: UserConfig = {
+    base: './',
     build: {
       outDir: join('dist', TEMP_DIR_NAME),
       emptyOutDir: true,
@@ -70,6 +104,10 @@ export function experiment({ slug, entry }: ExperimentOptions): UserConfig {
         },
       },
     },
-    plugins: [hashOutputDir(TEMP_DIR_NAME, 'dist')],
+    // hashOutputDir/scopeCss listed last so they always concatenate onto
+    // (never get displaced by) whatever the app passed via `plugins`.
+    plugins: [...plugins, hashOutputDir(TEMP_DIR_NAME, 'dist'), scopeCss(slug)] as Plugin[],
   };
+
+  return mergeConfig(withAppConfig, presetOwned);
 }

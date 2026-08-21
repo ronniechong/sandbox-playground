@@ -1,0 +1,14 @@
+{
+  "name": "@exp/tailwind-app-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@exp/build-preset": "workspace:*",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "catalog:"
+  }
+}

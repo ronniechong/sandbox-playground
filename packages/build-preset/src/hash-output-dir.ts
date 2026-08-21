@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
-import type { Plugin } from 'vite';
+import { isAbsolute, join } from 'node:path';
+import type { Plugin, ResolvedConfig } from 'vite';
 
 /**
  * Vite/Rollup has no built-in way to hash an entire output *directory*
@@ -12,11 +12,22 @@ import type { Plugin } from 'vite';
  * whole build.
  */
 export function hashOutputDir(tempDirName: string, distDir: string): Plugin {
+  let root = '';
+
   return {
     name: 'hash-output-dir',
     apply: 'build',
+    configResolved(config: ResolvedConfig) {
+      // Never assume process.cwd() matches the project being built —
+      // that only coincidentally holds when a CLI build first `cd`s
+      // into the package directory. A programmatic `build({ root })`
+      // call from elsewhere (tooling, tests) would otherwise silently
+      // look for the temp dir in the wrong place.
+      root = config.root;
+    },
     closeBundle() {
-      const tempDir = join(distDir, tempDirName);
+      const resolvedDist = isAbsolute(distDir) ? distDir : join(root, distDir);
+      const tempDir = join(resolvedDist, tempDirName);
       // closeBundle fires during Vite's cleanup even after an earlier
       // build error, since Rollup still closes the bundle on the way
       // out. Without this check, a genuine upstream failure (a bad
@@ -30,7 +41,7 @@ export function hashOutputDir(tempDirName: string, distDir: string): Plugin {
         hash.update(readFileSync(join(tempDir, file)));
       }
       const shortHash = hash.digest('hex').slice(0, 8);
-      const finalDir = join(distDir, shortHash);
+      const finalDir = join(resolvedDist, shortHash);
 
       // Append-only: never overwrite an existing hash directory — its
       // content is already correct if the hash matches, and if it

@@ -1,8 +1,8 @@
 import type { AtRule, Plugin, Rule } from 'postcss';
 
-const PASSTHROUGH_AT_RULES = new Set(['keyframes', '-webkit-keyframes', 'font-face']);
+export const PASSTHROUGH_AT_RULES = new Set(['keyframes', '-webkit-keyframes', 'font-face']);
 
-function isInsidePassthroughAtRule(rule: Rule): boolean {
+export function isInsidePassthroughAtRule(rule: Rule): boolean {
   const parent = rule.parent;
   return (
     parent !== undefined &&

@@ -17,7 +17,7 @@
 
 ## Repository layout
 
-_(populated as the workspace is built out — see individual milestones)_
+_(populated as the workspace is built out)_
 
 ## Commands
 
