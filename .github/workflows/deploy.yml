@@ -68,6 +68,8 @@ jobs:
 
       - name: Bootstrap site-state if it doesn't exist yet
         if: steps.checkout-site-state.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           rm -rf site
@@ -77,6 +79,7 @@ jobs:
           git checkout -q -b site-state
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           git commit --allow-empty -q -m "chore(site-state): bootstrap"
 
       - name: Determine what changed
