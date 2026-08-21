@@ -7,6 +7,16 @@ Deployed to GitHub Pages; only changed experiments are rebuilt.
 See [AGENTS.md](./AGENTS.md) for the project's non-negotiable principles and
 settled technical decisions.
 
+## Local setup
+
+Requires, on top of Node (see `.nvmrc`) and pnpm (see `packageManager`):
+
+- [`just`](https://github.com/casey/just) — command runner (`brew install just`)
+- [`gitleaks`](https://github.com/gitleaks/gitleaks) — pre-commit secret scanning (`brew install gitleaks`)
+
+Run `just --list` for available commands, or `pnpm install` first to also
+wire up git hooks.
+
 ## GitHub Pages setup (manual, one-off)
 
 This repo's Pages source is set to **GitHub Actions** (Settings → Pages →
