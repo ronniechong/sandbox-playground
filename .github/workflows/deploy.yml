@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -169,6 +170,7 @@ jobs:
       # doubles as the changelog for picking a rollback target, instead of
       # every commit saying the same generic "sync deploy tree".
       - name: Commit site-state
+        id: commit-site-state
         run: |
           set -euo pipefail
           MAIN_SUBJECT="$(git log -1 --format=%s "${{ github.sha }}")"
@@ -186,8 +188,42 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -F "$RUNNER_TEMP/site-commit-message.txt" || exit 0
+          git commit -F "$RUNNER_TEMP/site-commit-message.txt" || true
           git push origin HEAD:site-state
+
+          echo "main_subject=$MAIN_SUBJECT" >> "$GITHUB_OUTPUT"
+          echo "site_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # Squash-merge subjects on this repo end in "(#N)" — extract that PR
+      # number and drop the rollback hash on the PR that caused this deploy,
+      # since that's where a human will naturally look for "what shipped and
+      # what do I revert to." Skips quietly for any push that isn't a
+      # squash-merged PR (direct commits, non-PR pushes).
+      - name: Comment rollback hash on PR
+        if: always() && steps.commit-site-state.outputs.site_sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SUBJECT="${{ steps.commit-site-state.outputs.main_subject }}"
+          PR_NUMBER="$(echo "$SUBJECT" | grep -oE '\(#[0-9]+\)$' | grep -oE '[0-9]+' || true)"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR number found in '$SUBJECT' — skipping comment."
+            exit 0
+          fi
+          SITE_SHA="${{ steps.commit-site-state.outputs.site_sha }}"
+          {
+            echo "Deployed as \`site-state@${SITE_SHA:0:7}\`."
+            echo ""
+            echo "To roll back to the state before this PR, see [docs/ROLLBACK.md](https://github.com/${{ github.repository }}/blob/main/docs/ROLLBACK.md) using the \`site-state\` commit prior to this one."
+            if [ -s "$RUNNER_TEMP/site-summary.txt" ]; then
+              echo ""
+              echo '```'
+              cat "$RUNNER_TEMP/site-summary.txt"
+              echo '```'
+            fi
+          } > "$RUNNER_TEMP/pr-comment.txt"
+          gh pr comment "$PR_NUMBER" -R "${{ github.repository }}" --body-file "$RUNNER_TEMP/pr-comment.txt"
 
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
