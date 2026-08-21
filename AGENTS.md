@@ -54,3 +54,4 @@
 2. Never silently override a settled decision above — flag it and wait for a response instead of re-litigating unprompted.
 3. Comments and commit messages in this repo never conversationally attribute a decision to a person by name, and never reference any private planning repo or its files.
 4. Code comments explain non-obvious **why** only — a hidden constraint, a subtle invariant, a workaround for a specific bug. Default to no comment. Never write a running decision log in comments: no timestamps, no "changed from X to Y because...", no per-change justification trail.
+5. New apps and updates ship through a pull request into `main`, never a direct push — `main` is protected and merging into it means production-ready. This applies to agent-driven changes the same as human ones; open a branch and PR instead of pushing straight to `main`.

@@ -233,6 +233,14 @@ export interface BuildRegistryOptions {
   commonUrl: string;
   /** Path prefix apps are served under, e.g. "/apps" (no trailing slash). */
   urlPrefix?: string;
+  /**
+   * Restricts which app directories are scanned. Used by CI to build only
+   * the apps rebuilt this run, without touching registry entries for apps
+   * whose dist/ isn't present in a fresh checkout — those are merged back
+   * in separately by the caller from the previously deployed registry.
+   * Omit to scan every app directory (the local/dev-server behavior).
+   */
+  slugs?: string[];
 }
 
 export async function buildRegistry(options: BuildRegistryOptions): Promise<Registry> {
@@ -240,11 +248,12 @@ export async function buildRegistry(options: BuildRegistryOptions): Promise<Regi
   const prevRegistry = await loadPrevRegistry(options.prevRegistrySource);
   const shared: SharedManifest = { vendorUrl: options.vendorUrl, commonUrl: options.commonUrl };
 
-  const slugs = existsSync(options.appsDir)
+  const allSlugs = existsSync(options.appsDir)
     ? readdirSync(options.appsDir).filter((name) =>
         statSync(join(options.appsDir, name)).isDirectory(),
       )
     : [];
+  const slugs = options.slugs ? allSlugs.filter((s) => options.slugs!.includes(s)) : allSlugs;
 
   const registry: Registry = [];
   for (const slug of slugs) {

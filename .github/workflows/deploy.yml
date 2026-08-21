@@ -1,38 +1,201 @@
 name: Deploy pages
 
 on:
-  workflow_dispatch: {}
   push:
     branches: [main]
-    paths:
-      - 'public/**'
-      - '.github/workflows/deploy.yml'
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+  workflow_dispatch:
+    inputs:
+      rebuild:
+        description: 'Force rebuild: a comma-separated list of app slugs, or "all"'
+        required: false
+        default: ''
 
 concurrency:
-  group: pages
+  group: pages-deploy
   cancel-in-progress: false
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+permissions: {}
 
-      - uses: actions/upload-pages-artifact@v3
+env:
+  BASE_PATH: /sandbox-playground
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          path: public
+          node-version: 22
+          cache: pnpm
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+      - run: pnpm install --frozen-lockfile
+      - run: just check
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 2
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+      - run: pnpm install --frozen-lockfile
+
+      # Idempotent by design: same code path bootstraps an empty site-state
+      # on the very first run and checks out an existing one on every run
+      # after that, so there's no separate one-off setup step to keep in
+      # sync with the workflow.
+      - name: Checkout site-state
+        id: checkout-site-state
+        continue-on-error: true
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: site-state
+          path: site
+          fetch-depth: 0
+
+      - name: Bootstrap site-state if it doesn't exist yet
+        if: steps.checkout-site-state.outcome != 'success'
+        run: |
+          set -euo pipefail
+          rm -rf site
+          mkdir -p site
+          cd site
+          git init -q
+          git checkout -q -b site-state
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -q -m "chore(site-state): bootstrap"
+
+      - name: Determine what changed
+        id: changes
+        run: |
+          set -euo pipefail
+          REBUILD="${{ github.event.inputs.rebuild }}"
+          SHARED_CHANGED=false
+          SHELL_CHANGED=false
+
+          if [ "$REBUILD" = "all" ]; then
+            APPS="$(find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | paste -sd, -)"
+            SHARED_CHANGED=true
+            SHELL_CHANGED=true
+          elif [ -n "$REBUILD" ]; then
+            APPS="$REBUILD"
+          else
+            APPS="$(just changed --registry site/registry.json | paste -sd, -)"
+          fi
+
+          if [ "$REBUILD" != "all" ] && git rev-parse HEAD^ >/dev/null 2>&1; then
+            if ! git diff --quiet HEAD^ HEAD -- 'packages/vendor/**' 'packages/common/**' 'pnpm-workspace.yaml'; then
+              SHARED_CHANGED=true
+            fi
+            if ! git diff --quiet HEAD^ HEAD -- 'packages/shell/**'; then
+              SHELL_CHANGED=true
+            fi
+          fi
+
+          {
+            echo "apps=$APPS"
+            echo "shared_changed=$SHARED_CHANGED"
+            echo "shell_changed=$SHELL_CHANGED"
+          } >> "$GITHUB_OUTPUT"
+          echo "Apps: $APPS"
+          echo "Shared changed: $SHARED_CHANGED"
+          echo "Shell changed: $SHELL_CHANGED"
+
+      - name: Build vendor/common
+        if: steps.changes.outputs.shared_changed == 'true'
+        run: just build-shared
+
+      - name: Build changed apps
+        if: steps.changes.outputs.apps != ''
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra SLUGS <<< "${{ steps.changes.outputs.apps }}"
+          for slug in "${SLUGS[@]}"; do
+            [ -z "$slug" ] && continue
+            pnpm --filter "@exp/$slug" run build
+          done
+
+      - name: Build shell
+        if: steps.changes.outputs.shell_changed == 'true'
+        run: pnpm --filter @exp/shell run build
+
+      - name: Assemble site
+        run: |
+          just build-site \
+            --site site \
+            --base-path "$BASE_PATH" \
+            --changed-apps "${{ steps.changes.outputs.apps }}" \
+            ${{ steps.changes.outputs.shared_changed == 'true' && '--rebuilt-shared' || '' }} \
+            ${{ steps.changes.outputs.shell_changed == 'true' && '--rebuilt-shell' || '' }}
+
+      - name: Commit site-state
+        run: |
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(site-state): sync deploy tree" || exit 0
+          git push origin HEAD:site-state
+
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: site
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+
+  staleness:
+    needs: verify
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        continue-on-error: true
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: site-state
+          path: site
+        continue-on-error: true
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+        continue-on-error: true
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+        continue-on-error: true
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+        continue-on-error: true
+      - run: pnpm install --frozen-lockfile
+        continue-on-error: true
+
+      - name: Report staleness
+        continue-on-error: true
+        run: just staleness --registry site/registry.json
