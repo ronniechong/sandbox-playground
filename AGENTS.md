@@ -45,7 +45,7 @@ rules, CSS scoping caveats, Shadow DOM opt-in, vendor rules — see
 [docs/AUTHORING.md](./docs/AUTHORING.md). To bring a frozen (already
 deployed) experiment back for changes, see
 [docs/REVIVING.md](./docs/REVIVING.md). For the additive-only rule shared
-packages must follow, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+packages must follow, see [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md).
 
 ## Settled technical decisions (do not re-litigate silently — flag first)
 

@@ -7,7 +7,7 @@ pnpm new <slug> [--with <name,name>] [--with-msw] [--no-tailwind]
 ```
 
 `--with` copies a component from `packages/ui/src/<name>.tsx` into the new
-app (see [CONTRIBUTING.md](../CONTRIBUTING.md) for why this is a copy, not
+app (see [CONTRIBUTING.md](./CONTRIBUTING.md) for why this is a copy, not
 an import). `--with-msw` wires up a mock service worker. `--no-tailwind`
 strips the default Tailwind setup.
 
@@ -106,7 +106,7 @@ implications:
   exists for anything else genuinely worth sharing at runtime, but the
   default is: don't add to it. Most shared code should be copied via
   `packages/ui`, not added to a shared runtime bundle — see
-  [CONTRIBUTING.md](../CONTRIBUTING.md).
+  [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Checking staleness
 
