@@ -4,5 +4,6 @@
   "shell": {
     "js": "/packages/shell/dist/shell-Cf2IgLqQ.js",
     "css": null
-  }
+  },
+  "deployedSha": "e993695355c749970d04dd15092092a12987d3aa"
 }
