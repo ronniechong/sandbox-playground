@@ -6,7 +6,8 @@
     "title": "Hello World",
     "description": "",
     "tags": [],
-    "status": "wip"
+    "status": "wip",
+    "isEnabled": true
   },
   "scripts": {
     "build": "vite build",

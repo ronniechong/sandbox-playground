@@ -8,6 +8,7 @@ install:
 
 typecheck:
     pnpm -r --if-present run typecheck
+    pnpm exec tsc --noEmit -p tsconfig.json
 
 lint:
     pnpm exec eslint .
@@ -20,6 +21,7 @@ format-check:
 
 test:
     pnpm -r --if-present run test
+    pnpm exec vitest run --config vitest.scripts.config.ts
 
 check: format-check lint typecheck test
 
@@ -34,6 +36,9 @@ build-shared: build-vendor build-common
 
 new *args:
     pnpm exec tsx scripts/new-experiment.ts {{args}}
+
+dev *args:
+    pnpm exec tsx scripts/dev.ts {{args}}
 
 pre-commit:
     #!/usr/bin/env bash

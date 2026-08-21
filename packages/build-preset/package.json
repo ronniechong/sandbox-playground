@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@exp/contract": "workspace:*",
     "postcss": "^8.4.49",
     "rollup": "^4.0.0",
     "typescript": "catalog:",

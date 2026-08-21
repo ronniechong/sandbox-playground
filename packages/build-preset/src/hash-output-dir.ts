@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import type { Plugin, ResolvedConfig } from 'vite';
 
@@ -10,8 +10,19 @@ import type { Plugin, ResolvedConfig } from 'vite';
  * and renaming it after the fact, once every emitted file's final
  * content is on disk, is the only way to get one hash covering the
  * whole build.
+ *
+ * `provenance`, when given, is written as `build.json` into the final
+ * hashed directory after the rename — deliberately excluded from the
+ * hash itself, since it records facts *about* this build (e.g. which
+ * contract version it was built against) rather than build output. The
+ * registry builder reads it back as frozen, build-time truth instead of
+ * ever recomputing it from whatever is current at registry-build time.
  */
-export function hashOutputDir(tempDirName: string, distDir: string): Plugin {
+export function hashOutputDir(
+  tempDirName: string,
+  distDir: string,
+  provenance?: () => Record<string, unknown>,
+): Plugin {
   let root = '';
 
   return {
@@ -50,6 +61,9 @@ export function hashOutputDir(tempDirName: string, distDir: string): Plugin {
         rmSync(tempDir, { recursive: true, force: true });
       } else {
         renameSync(tempDir, finalDir);
+        if (provenance) {
+          writeFileSync(join(finalDir, 'build.json'), JSON.stringify(provenance(), null, 2) + '\n');
+        }
       }
       console.log(`Built to ${finalDir}`);
     },

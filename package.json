@@ -13,12 +13,16 @@
     "format": "just format",
     "format:check": "just format-check",
     "test": "just test",
-    "new": "tsx scripts/new-experiment.ts"
+    "new": "tsx scripts/new-experiment.ts",
+    "dev": "tsx scripts/dev.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
     "@eslint/js": "^9.15.0",
+    "@exp/shell": "workspace:*",
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.12.0",
@@ -28,7 +32,9 @@
     "simple-git-hooks": "^2.11.1",
     "tsx": "^4.19.2",
     "typescript": "catalog:",
-    "typescript-eslint": "^8.15.0"
+    "typescript-eslint": "^8.15.0",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   },
   "simple-git-hooks": {
     "pre-commit": "just pre-commit",

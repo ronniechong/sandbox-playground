@@ -6,7 +6,8 @@
     "title": "__TITLE__",
     "description": "",
     "tags": [],
-    "status": "wip"
+    "status": "wip",
+    "isEnabled": true
   },
   "scripts": {
     "build": "vite build",

@@ -9,6 +9,12 @@ export interface RegistryEntry {
   commonUrl: string;
   entry: { js: string; css?: string };
   contractVersion: 1;
+  /**
+   * Semver, auto-patch-bumped by the registry builder whenever a rebuild
+   * is detected — an artifact field like `entry`/`contractVersion`, never
+   * hand-maintained here in the registry itself.
+   */
+  version: string;
   tags: string[];
   /**
    * Display-filter concept for the home grid, distinct from `isEnabled`

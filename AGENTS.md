@@ -38,14 +38,15 @@
 
 ## Settled technical decisions (do not re-litigate silently — flag first)
 
-| Decision        | Choice                                                     |
-| --------------- | ---------------------------------------------------------- |
-| Package manager | pnpm workspaces                                            |
-| Bundler         | Vite only, across the shell, apps, vendor, and common      |
-| Bundle format   | IIFE with globals — no ES modules, no import maps          |
-| Boundary        | `mount(el, ctx)` function, not custom elements             |
-| CSS isolation   | Build-time PostCSS scoping; Shadow DOM is a per-app opt-in |
-| Hosting         | GitHub Pages, deployed via GitHub Actions                  |
+| Decision              | Choice                                                                                                                                                                                                                                                                                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Package manager       | pnpm workspaces                                                                                                                                                                                                                                                                                                         |
+| Bundler               | Vite only, across the shell, apps, vendor, and common                                                                                                                                                                                                                                                                   |
+| Bundle format         | IIFE with globals — no ES modules, no import maps                                                                                                                                                                                                                                                                       |
+| Boundary              | `mount(el, ctx)` function, not custom elements                                                                                                                                                                                                                                                                          |
+| CSS isolation         | Build-time PostCSS scoping; Shadow DOM is a per-app opt-in                                                                                                                                                                                                                                                              |
+| Hosting               | GitHub Pages, deployed via GitHub Actions                                                                                                                                                                                                                                                                               |
+| Experiment versioning | Per-app semver in the registry, not the root `package.json` — auto-patch-bump on rebuild, `archived` apps excluded, minor/major only via a manual `experiment.version` override in that app's `package.json`. Never invent a root/site-wide version. See README.md's "Experiment versioning" section for the full flow. |
 
 ## Rules for any AI agent working here
 
