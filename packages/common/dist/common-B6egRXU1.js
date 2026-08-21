@@ -1,0 +1,1 @@
+(function(){"use strict";function e(n,o){const t=window.ReactDOM.createRoot(n);return t.render(o),t}function c(n,o){n.addEventListener("abort",o,{once:!0})}const r={mountReact:e,cleanup:c};window.__common=r})();

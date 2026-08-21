@@ -1,0 +1,19 @@
+[
+  {
+    "slug": "hello-world",
+    "title": "Hello World",
+    "description": "",
+    "isEnabled": true,
+    "lastUpdated": "2026-08-21T21:47:51.218Z",
+    "vendorUrl": "/sandbox-playground/packages/vendor/dist/vendor-CaQO5Ytf.js",
+    "commonUrl": "/sandbox-playground/packages/common/dist/common-B6egRXU1.js",
+    "entry": {
+      "js": "/sandbox-playground/apps/hello-world/dist/c52be47c/index.js",
+      "css": "/sandbox-playground/apps/hello-world/dist/c52be47c/index.css"
+    },
+    "contractVersion": 1,
+    "version": "0.1.0",
+    "tags": [],
+    "status": "wip"
+  }
+]

@@ -1,0 +1,23 @@
+<!doctype html>
+<!--
+  GitHub Pages serves this file for any direct/deep-linked path it has no
+  matching file for. It is a bounce-through, not a page a user should
+  ever see rendered: it stashes the attempted path and redirects to the
+  site root, where the shell's router picks the path back up and either
+  mounts the right app or renders its own in-app 404.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <link rel="icon" type="image/svg+xml" href="/sandbox-playground/favicon.svg" />
+    <script>
+      sessionStorage.setItem(
+        'shell:bounce-path',
+        window.location.pathname + window.location.search,
+      );
+      window.location.replace(window.location.origin + '/sandbox-playground/');
+    </script>
+  </head>
+  <body></body>
+</html>
