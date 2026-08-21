@@ -1,0 +1,50 @@
+{
+  "name": "sandbox-playground",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepare": "simple-git-hooks",
+    "typecheck": "just typecheck",
+    "lint": "just lint",
+    "format": "just format",
+    "format:check": "just format-check",
+    "test": "just test"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@eslint/js": "^9.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.12.0",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "simple-git-hooks": "^2.11.1",
+    "tsx": "^4.19.2",
+    "typescript": "catalog:",
+    "typescript-eslint": "^8.15.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "just pre-commit",
+    "commit-msg": "just commit-msg \"$1\"",
+    "pre-push": "just pre-push"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ],
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
+}
