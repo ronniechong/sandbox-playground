@@ -41,3 +41,7 @@ export function buildChromeToggleIcon(): SVGElement {
 export function buildChevronUpIcon(): SVGElement {
   return strokeIcon(['M6 14.5l6-6 6 6']);
 }
+
+export function buildHomeIcon(): SVGElement {
+  return strokeIcon(['M3.5 11.5 12 4l8.5 7.5M6 9.8V20h12V9.8']);
+}

@@ -637,6 +637,31 @@ body {
   font-size: 14px;
 }
 
+.shell-drawer-home-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 10px 12px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--shell-font-display);
+  font-weight: 500;
+  font-size: 13.5px;
+  transition: background 110ms;
+}
+
+.shell-drawer-home-link:hover {
+  background: var(--shell-color-surface-2);
+}
+
+.shell-drawer-home-link svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .shell-drawer-search {
   margin: 10px 12px;
   padding: 7px 12px;

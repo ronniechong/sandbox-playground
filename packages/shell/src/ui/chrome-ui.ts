@@ -15,6 +15,7 @@ import {
   buildChevronUpIcon,
   buildChromeToggleIcon,
   buildHamburgerIcon,
+  buildHomeIcon,
   buildMoonIcon,
   buildSunIcon,
 } from './icons.ts';
@@ -193,6 +194,20 @@ export class ChromeUI {
         { className: 'shell-drawer-head' },
         buildBrandMark(),
         el('span', { className: 'shell-drawer-heading' }, 'Experiments'),
+      ),
+      el(
+        'a',
+        {
+          className: 'shell-drawer-home-link',
+          href: basePath || '/',
+          onclick: (event) => {
+            event.preventDefault();
+            this.closeDrawer();
+            this.callbacks.onHomeClick();
+          },
+        },
+        buildHomeIcon(),
+        'Home',
       ),
       this.drawerSearch,
       this.drawerList,
