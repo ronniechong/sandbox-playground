@@ -11,6 +11,19 @@ app (see [CONTRIBUTING.md](./CONTRIBUTING.md) for why this is a copy, not
 an import). `--with-msw` wires up a mock service worker. `--no-tailwind`
 strips the default Tailwind setup.
 
+## Metadata (`experiment` block in `package.json`)
+
+The scaffolder leaves `description` and `tags` blank and `status` set to
+`wip` — nothing fills these in automatically, so an experiment ships with
+silent metadata unless someone asks. An AI agent scaffolding a new
+experiment should:
+
+- **At kickoff:** ask the person for a one-line `description` (and `tags`,
+  if they already know how they'd categorize it).
+- **Before publishing** (opening the PR that merges it into `main`): ask
+  them to confirm or set `tags` if not already set, and confirm whether
+  `status` should move off `wip` (e.g. to `live`) now that it's ready.
+
 ## The contract
 
 Every experiment exports one object from its entry file, registered on
