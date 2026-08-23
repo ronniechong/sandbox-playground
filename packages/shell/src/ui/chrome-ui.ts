@@ -35,7 +35,7 @@ interface GridState {
 }
 
 function emptyGridState(): GridState {
-  return { query: '', tags: [], showArchived: false, sortKey: 'title', sortDirection: 'asc' };
+  return { query: '', tags: [], showArchived: false, sortKey: 'date', sortDirection: 'desc' };
 }
 
 const SORT_OPTIONS: Array<{
@@ -282,6 +282,7 @@ export class ChromeUI {
       { className: 'shell-sort-select', 'aria-label': 'Sort experiments' },
       ...SORT_OPTIONS.map((option) => el('option', { value: option.value }, option.label)),
     );
+    sortSelect.value = `${this.homeGridState.sortKey}-${this.homeGridState.sortDirection}`;
 
     const grid = el('div', { className: 'shell-grid' });
 
