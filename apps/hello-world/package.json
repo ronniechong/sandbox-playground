@@ -4,9 +4,9 @@
   "type": "module",
   "experiment": {
     "title": "Hello World",
-    "description": "",
+    "description": "Test app",
     "tags": [],
-    "status": "wip",
+    "status": "archived",
     "isEnabled": true
   },
   "scripts": {
