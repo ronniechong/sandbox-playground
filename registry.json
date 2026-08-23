@@ -15,5 +15,28 @@
     "version": "0.1.2",
     "tags": [],
     "status": "wip"
+  },
+  {
+    "slug": "impossible-shapes",
+    "title": "Impossible Shapes",
+    "description": "Impossible shapes with animations",
+    "isEnabled": true,
+    "lastUpdated": "2026-08-23T00:08:58.658Z",
+    "vendorUrl": "/sandbox-playground/packages/vendor/dist/vendor-CaQO5Ytf.js",
+    "commonUrl": "/sandbox-playground/packages/common/dist/common-B6egRXU1.js",
+    "vendor": "vendor-CaQO5Ytf.js",
+    "common": "common-B6egRXU1.js",
+    "entry": {
+      "js": "/sandbox-playground/apps/impossible-shapes/dist/e3bded30/index.js",
+      "css": "/sandbox-playground/apps/impossible-shapes/dist/e3bded30/index.css"
+    },
+    "contractVersion": 1,
+    "version": "0.1.0",
+    "tags": [
+      "UI",
+      "Canvas",
+      "Animation"
+    ],
+    "status": "live"
   }
 ]

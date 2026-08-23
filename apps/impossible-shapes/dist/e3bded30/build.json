@@ -1,0 +1,9 @@
+{
+  "contractVersion": 1,
+  "sourceTree": "25ccf577d567a48e6a06f7b5098f82fee5316f98",
+  "toolchainTrees": {
+    "contract": "e9f08bcfc67b8c3a928ed3d81bb372f5811f0bbb",
+    "reset": "3ec4087713245cc1138ec085b134fdd6f2e5c861",
+    "build-preset": "b9f2ecc6c85a6f7e0486e316f10621276484087a"
+  }
+}
