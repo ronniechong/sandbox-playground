@@ -2,11 +2,13 @@
   {
     "slug": "hello-world",
     "title": "Hello World",
-    "description": "",
+    "description": "Test app",
     "isEnabled": true,
-    "lastUpdated": "2026-08-21T22:13:53.513Z",
+    "lastUpdated": "2026-08-23T01:09:21.138Z",
     "vendorUrl": "/sandbox-playground/packages/vendor/dist/vendor-CaQO5Ytf.js",
     "commonUrl": "/sandbox-playground/packages/common/dist/common-B6egRXU1.js",
+    "vendor": "vendor-CaQO5Ytf.js",
+    "common": "common-B6egRXU1.js",
     "entry": {
       "js": "/sandbox-playground/apps/hello-world/dist/c52be47c/index.js",
       "css": "/sandbox-playground/apps/hello-world/dist/c52be47c/index.css"
@@ -14,7 +16,7 @@
     "contractVersion": 1,
     "version": "0.1.2",
     "tags": [],
-    "status": "wip"
+    "status": "archived"
   },
   {
     "slug": "impossible-shapes",
