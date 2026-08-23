@@ -266,7 +266,18 @@ export class ChromeUI {
   showLoading(): void {
     this.appContainer.textContent = '';
     this.appContainer.appendChild(
-      el('div', { className: 'shell-loading', role: 'status' }, 'Loading…'),
+      el(
+        'div',
+        { className: 'shell-loading', role: 'status' },
+        el(
+          'div',
+          { className: 'shell-loading-spinner' },
+          el('span', { className: 'shell-loading-dot' }),
+          el('span', { className: 'shell-loading-dot' }),
+          el('span', { className: 'shell-loading-dot' }),
+        ),
+        el('span', { className: 'shell-loading-label' }, 'Loading…'),
+      ),
     );
   }
 
