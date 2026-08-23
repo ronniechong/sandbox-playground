@@ -1,0 +1,37 @@
+{
+  "name": "@exp/impossible-shapes",
+  "private": true,
+  "type": "module",
+  "experiment": {
+    "title": "Impossible Shapes",
+    "description": "Impossible shapes with animations",
+    "tags": [
+      "UI",
+      "Canvas",
+      "Animation"
+    ],
+    "status": "live",
+    "isEnabled": true
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@exp/build-preset": "workspace:*",
+    "@exp/contract": "workspace:*",
+    "@exp/reset": "workspace:*",
+    "@testing-library/react": "^16.0.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^25.0.1",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}
