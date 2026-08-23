@@ -283,8 +283,58 @@ body {
 }
 
 .shell-loading {
-  padding: 2rem;
+  height: 100%;
+  min-height: calc(100dvh - var(--shell-header-height));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.shell-loading-spinner {
+  display: flex;
+  gap: 8px;
+}
+
+.shell-loading-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--shell-color-accent);
+  animation: shell-loading-bounce 0.9s ease-in-out infinite;
+}
+
+.shell-loading-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.shell-loading-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.shell-loading-label {
   color: var(--shell-color-muted);
+  font-size: 0.9rem;
+}
+
+@keyframes shell-loading-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-loading-dot {
+    animation: none;
+  }
 }
 
 /* ── not-found / error states ───────────────────── */
