@@ -11,6 +11,42 @@ app (see [CONTRIBUTING.md](./CONTRIBUTING.md) for why this is a copy, not
 an import). `--with-msw` wires up a mock service worker. `--no-tailwind`
 strips the default Tailwind setup.
 
+## Metadata (`experiment` block in `package.json`)
+
+The scaffolder leaves `description` and `tags` blank and `status` set to
+`wip` — nothing fills these in automatically, so an experiment ships with
+silent metadata unless someone asks. An AI agent scaffolding a new
+experiment should:
+
+- **At kickoff:** ask the person for a one-line `description` (and `tags`,
+  if they already know how they'd categorize it).
+- **Before publishing** (opening the PR that merges it into `main`): ask
+  them to confirm or set `tags` if not already set, and confirm whether
+  `status` should move off `wip` (e.g. to `live`) now that it's ready.
+
+## Code hygiene inside an experiment
+
+The scaffolder gives you a flat `src/` with `App.tsx`, `App.test.tsx`,
+`mount.ts`, `index.css`. That's fine for a trivial experiment, but past a
+handful of files, keep it organized rather than letting everything pile
+up flat:
+
+- **Structure by kind as it grows** — `components/`, `hooks/`, `utils/` (or
+  whatever grouping fits the experiment) once there's more than one of a
+  kind. A single-file experiment doesn't need folders it doesn't have
+  contents for yet; don't scaffold empty structure preemptively.
+- **Co-locate a component's CSS with the component**, not all in one
+  root `index.css`, once there's more than one component. `Foo.tsx` +
+  `Foo.css` (imported from `Foo.tsx`) beats a growing shared stylesheet —
+  the build-time class-prefixing (see "CSS scoping caveats" below) works
+  the same regardless of how many CSS files feed into the bundle.
+- **Give meaningful units a test.** Not full coverage for its own sake,
+  but anything with real logic — a projection/transform function, a
+  reducer, a parser — should have a `.test.ts` next to it. Canvas/visual
+  rendering itself is exempt (jsdom can't render it meaningfully; verify
+  those manually via `just dev <slug>`), but the pure logic feeding that
+  rendering usually isn't.
+
 ## The contract
 
 Every experiment exports one object from its entry file, registered on

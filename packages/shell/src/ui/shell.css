@@ -271,6 +271,17 @@ body {
   position: relative;
 }
 
+/*
+ * The mounted experiment's root (div[data-exp]) gets no size of its own —
+ * an experiment's height:100% would otherwise chase this auto-height
+ * parent and never actually fill the viewport below the header.
+ */
+.shell-app > [data-exp] {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+}
+
 .shell-loading {
   padding: 2rem;
   color: var(--shell-color-muted);
